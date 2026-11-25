@@ -159,7 +159,7 @@ export default function TrustedPublishersDrawer({ plugin, allPlugins, settings, 
             登记新的可信发布者
           </Typography.Title>
           <Form.Item name="repository" label="GitHub 仓库" rules={[{ required: true, message: '请填写 owner/repo' }]} extra="格式 owner/repo。私有仓库需要商店配置了 GitHub 令牌才能登记。">
-            <Input placeholder="VelaShellLabs/velashell-plugins" prefix={<GithubOutlined />} />
+            <Input placeholder="VelaShell/velashell-plugins" prefix={<GithubOutlined />} />
           </Form.Item>
           <Form.Item name="workflow" label="工作流文件" rules={[{ required: true, message: '请填写工作流文件名' }]} extra=".github/workflows/ 下的文件名,区分大小写。">
             <Input placeholder="release.yml" className="mono" />

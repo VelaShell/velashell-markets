@@ -20,7 +20,7 @@ public class TrustedPublishingTests
         new()
         {
             PublisherId = "p1",
-            Repository = "VelaShellLabs/velashell-plugins",
+            Repository = "VelaShell/velashell-plugins",
             RepositoryId = RepoId,
             RepositoryOwnerId = OwnerId,
             Workflow = workflow,
@@ -28,7 +28,7 @@ public class TrustedPublishingTests
         };
 
     private static GitHubOidcClaims Claims(
-        string repository = "VelaShellLabs/velashell-plugins",
+        string repository = "VelaShell/velashell-plugins",
         long repositoryId = RepoId,
         long ownerId = OwnerId,
         string? jobWorkflowRef = null,
@@ -47,7 +47,7 @@ public class TrustedPublishingTests
     public void Match_IgnoresRepositoryNameCase_ButUsesIdsAsTheIdentity()
     {
         // 名字大小写不同(GitHub 不区分),id 一致 → 通过。
-        Assert.IsNotNull(TrustedPublishing.Match([Publisher()], Claims(repository: "velashelllabs/VelaShell-Plugins")));
+        Assert.IsNotNull(TrustedPublishing.Match([Publisher()], Claims(repository: "velashell/VelaShell-Plugins")));
     }
 
     [TestMethod]
@@ -67,14 +67,14 @@ public class TrustedPublishingTests
     public void Match_RejectsAnotherWorkflowInTheSameRepository()
     {
         Assert.IsNull(TrustedPublishing.Match([Publisher()],
-            Claims(jobWorkflowRef: "VelaShellLabs/velashell-plugins/.github/workflows/ci.yml@refs/heads/dev")));
+            Claims(jobWorkflowRef: "VelaShell/velashell-plugins/.github/workflows/ci.yml@refs/heads/dev")));
     }
 
     [TestMethod]
     public void Match_WorkflowFileNameIsCaseSensitive()
     {
         Assert.IsNull(TrustedPublishing.Match([Publisher()],
-            Claims(jobWorkflowRef: "VelaShellLabs/velashell-plugins/.github/workflows/Release.yml@refs/tags/v1")));
+            Claims(jobWorkflowRef: "VelaShell/velashell-plugins/.github/workflows/Release.yml@refs/tags/v1")));
     }
 
     [TestMethod]
@@ -127,7 +127,7 @@ public class TrustedPublishingTests
     }
 
     [TestMethod]
-    [DataRow("VelaShellLabs/velashell-plugins", true)]
+    [DataRow("VelaShell/velashell-plugins", true)]
     [DataRow("a/b.c_d-e", true)]
     [DataRow("velashell-plugins", false)]
     [DataRow("-bad/repo", false)]
