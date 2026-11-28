@@ -12,7 +12,7 @@
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | GET | `/api/stats` | 站点概览:`plugins` / `versions` / `downloads` / `blockingPublished` |
-| GET | `/api/plugins` | 检索。`q` 关键词、`tag` 标签、`apiLevel` 宿主兼容性、`featured` 只看编辑推荐、`sort`(updated/downloads/rating/created)、`page`/`size` |
+| GET | `/api/plugins` | 检索。`q` 关键词、`tag` 标签、`apiLevel` 宿主兼容性、`featured` 只看编辑推荐、`installedIds` 已安装插件 ID 列表(可选)、`sort`(updated/downloads/rating/created)、`page`/`size` |
 | GET | `/api/plugins/{id}` | 详情:渲染后的 Markdown、已发布版本列表、每个版本的贡献点与**公开检测结论** |
 | GET | `/api/plugins/latest` | **按 id 批量取最新已发布版本**(宿主插件管理页检查更新用)。`ids` 逗号分隔(≤200)、`pre` 是否把预发布也算进来(默认否)。返回按插件 id 索引的表:版本号、`apiLevel` / `minHostVersion` / `minSdkVersion`、签名结论与**发布者指纹**、两个 SHA-256、包大小。已下架的插件与商店上没有的 id **不出现在结果里**,与详情接口 404 的口径一致 |
 | GET | `/api/plugins/{id}/related` | 相关插件:`byAuthor`(同一作者)+ `byTags`(标签重合) |
@@ -20,6 +20,8 @@
 | GET | `/api/plugins/tags` | 标签云 |
 | GET | `/api/plugins/{id}/reviews` | 评价列表(分页)。`sort`:`recent`(默认)/ `lowest` / `highest` |
 | GET | `/health` | 健康检查 |
+
+`GET /api/plugins?installedIds=acme.redis&installedIds=acme.ssh` 从符合其他检索条件的公开插件中排除这两个 ID。每个 ID 各传一个 `installedIds` 查询参数,不用逗号拼接。省略参数或所有值均为空白时按原目录检索。`total` 是分页前的匹配数,`items` 按原有排序分页。检查更新仍用 `/api/plugins/latest` 的 `ids` 参数。
 
 ## 需登录
 

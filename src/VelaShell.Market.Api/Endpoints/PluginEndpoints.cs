@@ -18,7 +18,7 @@ public static class PluginEndpoints
     {
         RouteGroupBuilder group = app.MapGroup("/api/plugins").WithTags("Plugins").AllowAnonymous();
 
-        group.MapGet("/", SearchAsync).WithSummary("检索插件(关键词/标签/宿主兼容性/是否推荐,分页)。");
+        group.MapGet("/", SearchAsync).WithSummary("检索插件(关键词/标签/宿主兼容性/是否推荐,可排除已安装插件,分页)。");
         group.MapGet("/latest", LatestAsync).WithSummary("按 id 批量取每个插件的最新已发布版本(宿主检查更新用)。");
         group.MapGet("/{id}", DetailAsync).WithSummary("插件详情,含渲染后的 Markdown、已发布版本列表与公开的检测结论。");
         group.MapGet("/{id}/related", RelatedAsync).WithSummary("同一作者的其他插件与标签相近的插件。");
@@ -26,19 +26,9 @@ public static class PluginEndpoints
         group.MapGet("/tags", TagsAsync).WithSummary("标签云。");
     }
 
-    private static async Task<IResult> SearchAsync(
-        MarketDbContext db,
-        string? q,
-        string? tag,
-        int? apiLevel,
-        bool? featured,
-        string sort = "updated",
-        int page = 1,
-        int size = 20)
+    /// <summary>插件目录的公共可见性与检索条件,用于总数和分页查询。</summary>
+    public static FilterDefinition<Plugin> BuildSearchFilter(string? q, string? tag, int? apiLevel, bool? featured, string[]? installedIds)
     {
-        page = Math.Max(1, page);
-        size = Math.Clamp(size, 1, 100);
-
         FilterDefinitionBuilder<Plugin> f = Builders<Plugin>.Filter;
         // 只列出确实有已发布版本的插件:一个还卡在隔离区的条目出现在检索里,点进去只会是空页。
         FilterDefinition<Plugin> filter = f.And(f.Eq(p => p.IsUnlisted, false), f.Ne(p => p.LatestVersion, null));
@@ -60,6 +50,32 @@ public static class PluginEndpoints
             filter = f.And(filter, f.Eq(p => p.IsFeatured, onlyFeatured));
         }
 
+        if (installedIds is { Length: > 0 })
+        {
+            string[] ids = [.. installedIds.Where(id => !string.IsNullOrWhiteSpace(id)).Select(id => id.Trim()).Distinct(StringComparer.Ordinal)];
+            if (ids.Length > 0)
+            {
+                filter = f.And(filter, f.Nin(p => p.Id, ids));
+            }
+        }
+        return filter;
+    }
+
+    private static async Task<IResult> SearchAsync(
+        MarketDbContext db,
+        string? q,
+        string? tag,
+        int? apiLevel,
+        bool? featured,
+        string[]? installedIds,
+        string sort = "updated",
+        int page = 1,
+        int size = 20)
+    {
+        page = Math.Max(1, page);
+        size = Math.Clamp(size, 1, 100);
+
+        FilterDefinition<Plugin> filter = BuildSearchFilter(q, tag, apiLevel, featured, installedIds);
         SortDefinition<Plugin> order = sort switch
         {
             "downloads" => Builders<Plugin>.Sort.Descending(p => p.Downloads),
